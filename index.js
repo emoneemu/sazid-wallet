@@ -18,6 +18,12 @@ if(desc.length>0 && value.length>0)
 
 });
 
+showItems();
+showTotalIncome();
+showTotalExpense();
+showTotalBalance();
+
+//ALL THE FUNCTIONS ARE HERE
 
 //UI functions
 
@@ -26,6 +32,48 @@ function resetForm()
     document.querySelector('.add__type').value = '+';
     document.querySelector('.add__description').value = '';
     document.querySelector('.add__value').value = '';
+}
+
+function getItemsfromLS()
+{
+    let items = localStorage.getItem('items');
+
+    if(items)
+    {
+        items = JSON.parse(items);
+    }
+    else
+    {
+        items = [];
+    }
+    return items;
+}
+
+function showItems()
+{
+    let items = getItemsfromLS();
+    const collection = document.querySelector('.collection');
+    
+    
+    for(let item of items)
+    {
+        const newHtml = `
+            <div class="item">
+                <div class="item-description-time">
+                    <div class="item-description">
+                        <p>${item.desc}</p>
+                    </div>
+                    <div class="item-time">
+                        <p>${item.time}</p>
+                    </div>
+                </div>
+                <div class="item-amount ${item.type === '+' ?'income-amount':'expense-amount'}">
+                    <p>${item.type}$${item.value}</p>
+                </div>
+            </div>
+            `;
+    collection.insertAdjacentHTML('afterbegin',newHtml);
+    }
 }
 
 function addItems(type,desc,value)
@@ -51,9 +99,22 @@ function addItems(type,desc,value)
 const collection = document.querySelector('.collection');
 collection.insertAdjacentHTML('afterbegin',newHtml);
 
+addItemsToLS(desc,time,type,value);
+
+showTotalExpense();
+showTotalIncome();
+showTotalBalance();
+
 }
 
+function addItemsToLS(desc,time,type,value)
+{
+    let items = getItemsfromLS();
+    items.push({desc,time,type,value});
 
+    localStorage.setItem  ('items',JSON.stringify(items));
+
+}
 //utility functions
 
 function getFormattedTime()
@@ -73,3 +134,57 @@ function getFormattedTime()
     
 }
 //console.log(now1.toLocaleTimeString('en-us'));
+
+function showTotalIncome()
+{
+    let items = getItemsfromLS();
+    let totalincome = 0;
+    for(let item of items)
+    {
+        if(item.type==='+')
+        {
+            totalincome += parseInt(item.value);
+        }
+    }
+    document.querySelector('.income__amount').innerHTML=`$${totalincome}`;
+    return totalincome;
+}
+
+function showTotalExpense()
+{
+    let items = getItemsfromLS();
+    let totalincome2 = 0;
+    for(let item of items)
+    {
+        if(item.type === '-')
+        {
+            totalincome2 += parseInt(item.value);
+        }
+    }
+    document.querySelector('.expense__amount').innerHTML=`$${totalincome2}`;
+    return totalincome2;
+}
+
+function showTotalBalance()
+{
+    let totalBalance = showTotalIncome()-showTotalExpense();
+    if (totalBalance>=0)
+    {
+        document.querySelector('header').className = 'green';
+    }
+    else
+    {
+        document.querySelector('header').className = 'red';
+    }
+    document.querySelector('.balance__amount').innerHTML=`$${totalBalance}`;
+    
+
+}
+console.log(showTotalIncome());
+console.log(showTotalExpense());
+
+
+//Using filter and reduce method to calculate the income expense and total
+
+//let totalincome = items.filter((item)=>item.type==='+').reduce((income,item)=>income+parseInt(item.value),0);
+//let totalexpense = items.filter((item)=>item.type==='-').reduce((expense,item)=>expense+parseInt(item.value),0);
